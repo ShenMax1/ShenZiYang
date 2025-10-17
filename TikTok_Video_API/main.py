@@ -81,6 +81,13 @@ def run_clean_module():
     
     try:
         import clean_old_files
+        # 修改清理路径
+        clean_old_files.DIRECTORIES = {
+            "video": r"D:\test\TikTok_Video_API\video",
+            "txt": r"D:\test\TikTok_Video_API\txt", 
+            "json": r"D:\test\TikTok_Video_API\json",
+            "result": r"D:\test\TikTok_Video_API\result"
+        }
         clean_old_files.clean_old_files()
         print("清理完成")
         return True
