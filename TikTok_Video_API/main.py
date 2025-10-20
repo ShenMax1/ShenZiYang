@@ -20,7 +20,7 @@ def print_header():
 
 def get_user_input():
     """获取用户输入的文本内容"""
-    print("\n请输入抖音链接文本：")
+    print("\n请输入抖音链接文本（可包含多个链接）：")
     user_input = input().strip()
     return user_input
 

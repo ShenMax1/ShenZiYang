@@ -9,7 +9,7 @@
 - AI内容分析（使用DeepSeek API进行智能分析）
 - 自动文件清理（保留最新文件，删除旧文件）
 - 简化的一键式操作流程
-- 支持从文本中自动提取抖音链接
+- 支持从文本中自动提取多个抖音链接并逐个处理
 - 集成繁体中文转简体中文功能
 - 提示词优化转录和分析准确性
 
@@ -68,12 +68,12 @@ pip install requests beautifulsoup4 lxml openai-whisper opencc-python-reimplemen
 python main.py
 ```
 
-程序会提示你输入抖音分享链接或包含链接的文本，然后自动完成以下步骤：
+程序会提示你输入抖音分享链接或包含多个链接的文本，然后自动完成以下步骤：
 1. 下载抖音视频到 `D:\test\TikTok_Video_API\video\`
 2. 将视频转换为文本，保存到 `D:\test\TikTok_Video_API\txt\`
 3. 使用AI分析文本内容，结果保存到 `D:\test\TikTok_Video_API\result\`
 4. 视频信息JSON保存到 `D:\test\TikTok_Video_API\json\`
-5. 清理旧文件，保留最新10个文件
+5. 清理旧文件，保留最新文件（result目录保留50个，其他目录保留10个）
 
 ### 分模块运行
 
@@ -83,12 +83,15 @@ python main.py
 python download_douyin_video.py
 ```
 
-支持输入包含抖音链接的文本，例如：
+支持输入包含多个抖音链接的文本，例如：
 ```text
-2.89 复制打开抖音，看看【京牌大明白990的作品】车辆平移全教程来了，可以解决84天进京证办理的烦恼... https://v.douyin.com/yt1apvLRBTU/ nDH:/ 07/25 x@F.UY
+这里有几个抖音视频分享给大家：
+第一个：https://v.douyin.com/yt1apvLRBTU/
+第二个：https://v.douyin.com/abcd1234/
+第三个：https://www.iesdouyin.com/share/video/1234567890123456789/
 ```
 
-视频将下载到 `D:\test\TikTok_Video_API\video\` 目录中。
+程序会自动提取所有链接并逐个下载视频，视频将保存到 `D:\test\TikTok_Video_API\video\` 目录中。
 
 #### 2. 音视频转文本
 
@@ -112,7 +115,10 @@ python analyze_transcript.py
 python clean_old_files.py
 ```
 
-默认保留每个目录最新的10个文件，删除其余旧文件。
+默认保留每个目录最新的文件：
+- result目录保留最新的50个文件
+- video、txt、json目录保留最新的10个文件
+- 删除其余旧文件，从最旧的开始删除
 
 ## 输出文件
 

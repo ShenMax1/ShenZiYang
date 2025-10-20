@@ -8,13 +8,45 @@ import re
 import json
 import requests
 import os
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from datetime import datetime
 
 # 请求头，模拟移动端访问
 HEADERS = {
     'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) EdgiOS/121.0.2277.107 Version/17.0 Mobile/15E148 Safari/604.1'
 }
+
+def extract_douyin_urls(text: str) -> List[str]:
+    """
+    从文本中提取所有抖音链接
+    
+    Args:
+        text: 包含抖音链接的文本
+        
+    Returns:
+        抖音链接列表
+    """
+    # 提取分享链接，增强正则表达式以匹配更多格式
+    # 匹配 v.douyin.com 或 www.iesdouyin.com 格式的链接
+    urls = re.findall(r'https?://(?:v\.douyin\.com|www\.iesdouyin\.com/share/video)/[\w\d\-._?=&/]+', text)
+    
+    # 如果上面的模式没有匹配到，尝试更通用的匹配
+    if not urls:
+        urls = re.findall(r'https?://[\w\d\-._?=&/]*douyin[\w\d\-._?=&/]+', text)
+    
+    # 最后尝试匹配任何URL
+    if not urls:
+        urls = re.findall(r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', text)
+    
+    # 去重并保持顺序
+    seen = set()
+    unique_urls = []
+    for url in urls:
+        if url not in seen:
+            seen.add(url)
+            unique_urls.append(url)
+    
+    return unique_urls
 
 def parse_douyin_share_url(share_text: str) -> Dict[str, Any]:
     """
@@ -151,6 +183,73 @@ def download_video(video_info: Dict[str, Any], save_path: str | None = None) -> 
     print("\n视频下载完成!")
     return save_path
 
+def process_multiple_links(share_text: str) -> List[str]:
+    """
+    处理包含多个链接的文本，逐个下载视频
+    
+    Args:
+        share_text: 包含多个抖音链接的文本
+        
+    Returns:
+        下载成功的文件路径列表
+    """
+    # 提取所有抖音链接
+    urls = extract_douyin_urls(share_text)
+    
+    if not urls:
+        print("未找到有效的抖音链接")
+        return []
+    
+    print(f"找到 {len(urls)} 个抖音链接")
+    downloaded_files = []
+    
+    # 逐个处理每个链接
+    for i, url in enumerate(urls, 1):
+        print(f"\n处理第 {i} 个链接: {url}")
+        try:
+            # 解析视频信息
+            video_info = parse_douyin_share_url(url)
+            
+            # 显示视频信息
+            print("\n" + "=" * 50)
+            print("视频信息:")
+            print("=" * 50)
+            print(f"标题: {video_info['title']}")
+            print(f"作者: {video_info['author']}")
+            print(f"点赞数: {video_info['likes']}")
+            print(f"评论数: {video_info['comments']}")
+            print(f"播放数: {video_info['plays']}")
+            print(f"视频ID: {video_info['video_id']}")
+            print(f"无水印下载地址: {video_info['url']}")
+            
+            # 下载视频
+            print("\n开始下载视频...")
+            save_path = download_video(video_info)
+            downloaded_files.append(save_path)
+            print(f"视频已保存至: {save_path}")
+            
+            # 保存JSON信息到 D:\test\TikTok_Video_API\json 目录
+            # 使用当前日期时间（精确到分钟）和标题的第一个字符作为文件名
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+            first_char = video_info['title'][0] if video_info['title'] else 'video'
+            json_filename = f"{timestamp}_{first_char}.json"
+            json_save_path = os.path.join(r"D:\\test\\TikTok_Video_API\\json", json_filename)
+            
+            # 确保JSON保存目录存在
+            os.makedirs(os.path.dirname(json_save_path), exist_ok=True)
+            
+            # 写入JSON文件
+            with open(json_save_path, 'w', encoding='utf-8') as f:
+                json.dump(video_info, f, ensure_ascii=False, indent=2)
+            print(f"视频信息已保存至: {json_save_path}")
+            
+        except Exception as e:
+            print(f"处理链接 {url} 时出现错误: {str(e)}")
+            print("继续处理下一个链接...")
+            continue
+    
+    return downloaded_files
+
 def main(share_link: Optional[str] = None):
     """主函数"""
     print("=" * 50)
@@ -166,43 +265,17 @@ def main(share_link: Optional[str] = None):
             print("请输入有效的分享链接!")
             return None
         
-        # 解析视频信息
-        video_info = parse_douyin_share_url(share_link)
+        # 处理多个链接
+        downloaded_files = process_multiple_links(share_link)
         
-        # 显示视频信息
-        print("\n" + "=" * 50)
-        print("视频信息:")
-        print("=" * 50)
-        print(f"标题: {video_info['title']}")
-        print(f"作者: {video_info['author']}")
-        print(f"点赞数: {video_info['likes']}")
-        print(f"评论数: {video_info['comments']}")
-        print(f"播放数: {video_info['plays']}")
-        print(f"视频ID: {video_info['video_id']}")
-        print(f"无水印下载地址: {video_info['url']}")
-        
-        # 直接下载视频，无需用户确认
-        print("\n开始下载视频...")
-        save_path = download_video(video_info)
-        print(f"视频已保存至: {save_path}")
-        
-        # 保存JSON信息到 D:\test\TikTok_Video_API\json 目录
-        # 使用当前日期时间（精确到分钟）和标题的第一个字符作为文件名
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M")
-        first_char = video_info['title'][0] if video_info['title'] else 'video'
-        json_filename = f"{timestamp}_{first_char}.json"
-        json_save_path = os.path.join(r"D:\\test\\TikTok_Video_API\\json", json_filename)
-        
-        # 确保JSON保存目录存在
-        os.makedirs(os.path.dirname(json_save_path), exist_ok=True)
-        
-        # 写入JSON文件
-        with open(json_save_path, 'w', encoding='utf-8') as f:
-            json.dump(video_info, f, ensure_ascii=False, indent=2)
-        print(f"视频信息已保存至: {json_save_path}")
-        
-        print("\n下载完成，程序即将退出。")
-        return save_path
+        if downloaded_files:
+            print(f"\n成功下载 {len(downloaded_files)} 个视频:")
+            for file_path in downloaded_files:
+                print(f"  - {file_path}")
+            return downloaded_files
+        else:
+            print("没有成功下载任何视频")
+            return None
             
     except KeyboardInterrupt:
         print("\n\n程序已被用户中断")
