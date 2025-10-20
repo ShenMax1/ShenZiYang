@@ -11,7 +11,7 @@ import datetime
 import time
 
 # DeepSeek API配置
-DEEPSEEK_API_KEY = "sk-bb22df6e1051431983a6485d0454c0bb"
+DEEPSEEK_API_KEY = "your_api_key"
 DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
 
 # 设置转录文件目录和结果目录

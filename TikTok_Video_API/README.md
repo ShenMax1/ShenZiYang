@@ -40,6 +40,26 @@ pip install requests beautifulsoup4 lxml openai-whisper opencc-python-reimplemen
 
 注意：Whisper模型会自动下载，首次运行可能需要较长时间。
 
+## 配置说明
+
+### DeepSeek API密钥配置
+
+本系统使用DeepSeek API进行AI内容分析，需要配置有效的API密钥才能正常使用分析功能。
+
+1. 访问 [DeepSeek官网](https://www.deepseek.com/) 注册账号并获取API密钥
+2. 在 [analyze_transcript.py](file:///d%3A/test/TikTok_Video_API/analyze_transcript.py) 文件中找到以下代码行：
+   ```python
+   DEEPSEEK_API_KEY = "your_api_key"
+   ```
+3. 将 `"your_api_key"` 替换为您自己的DeepSeek API密钥：
+   ```python
+   DEEPSEEK_API_KEY = "sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+   ```
+
+### 提示词配置
+
+系统使用 [提示词.txt](file:///d%3A/test/TikTok_Video_API/%E6%8F%90%E7%A4%BA%E8%AF%8D.txt) 文件来指导AI分析，您可以根据需要自定义分析要求。
+
 ## 使用方法
 
 ### 一键式运行（推荐）
